@@ -1,7 +1,13 @@
 #![allow(clippy::result_large_err)]
 
 use anchor_lang::prelude::*;
-
+#[error_code]
+pub enum VotingError {
+    #[msg("The poll has not started yet")]
+    PollNotStarted,
+    #[msg("The poll has already ended")]
+    PollEnded,
+}
 declare_id!("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF");
 
 #[program]
@@ -34,6 +40,18 @@ pub mod voting {
     }
 
     pub fn vote(ctx: Context<Vote>, _candidate_name: String, _poll_id: u64) -> Result<()> {
+        let poll = &ctx.accounts.poll;
+        let current_time = Clock::get()?.unix_timestamp as u64;
+        
+        require!(
+            current_time >= poll.poll_start,
+            VotingError::PollNotStarted
+        );
+        
+        require!(
+            current_time <= poll.poll_end,
+            VotingError::PollEnded
+        );
         let candidate = &mut ctx.accounts.candidate;
         candidate.candidate_votes += 1;
 
