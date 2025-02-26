@@ -30,6 +30,8 @@ pub mod voting {
         let candidate = &mut ctx.accounts.candidate;
         candidate.candidate_name = candidate_name;
         candidate.candidate_votes = 0;
+        // Increment candidate count in the poll
+        poll.candidate_amount += 1;
         Ok(())
     }
 
